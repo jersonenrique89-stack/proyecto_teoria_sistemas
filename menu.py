@@ -1,12 +1,15 @@
 from fastapi import FastAPI
 from fastapi import UploadFile
 from fastapi import File
+from fastapi import HTTPException
 
 from fastapi.staticfiles import StaticFiles
 
 from proyecto import procesar_imagen
 
 import os
+
+FORMATOS_PERMITIDOS = {".jpg", ".jpeg", ".png"}
 
 app = FastAPI(
     title="SIGMA Vision",
@@ -38,8 +41,17 @@ def inicio():
 async def procesar(
     archivo: UploadFile = File(...)
 ):
+    # Validar extensión del archivo
+    nombre = archivo.filename or ""
+    extension = os.path.splitext(nombre)[1].lower()
 
-    ruta = f"uploads/{archivo.filename}"
+    if extension not in FORMATOS_PERMITIDOS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Formato no permitido: '{extension}'. Solo se aceptan JPG, JPEG o PNG."
+        )
+
+    ruta = f"uploads/{nombre}"
 
     contenido = await archivo.read()
 
