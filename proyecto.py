@@ -33,6 +33,11 @@ def procesar_imagen(ruta_imagen):
         np.float32
     ) / 9
 
+    # --- FILTRO GAUSSIANO (Filtro pasa bajas) ---
+    # Suaviza la imagen usando una distribución gaussiana como pesos
+    # Efecto: reduce el ruido de forma más natural que el promedio simple,
+    # dando más peso al píxel central y menos a los píxeles más alejados
+
     # --- KERNEL DE ENFOQUE (Filtro pasa altas) ---
     # Resalta los detalles y bordes de la imagen
     # Efecto: aumenta el contraste en zonas de cambio brusco de intensidad
@@ -59,6 +64,14 @@ def procesar_imagen(ruta_imagen):
         imagen_gris,
         -1,
         kernel_suavizado
+    )
+
+    # Aplicar filtro Gaussiano
+    # (5, 5) es el tamaño del kernel, 1 es la desviación estándar en X y Y
+    imagen_gaussiana = cv2.GaussianBlur(
+        imagen_gris,
+        (5, 5),
+        1
     )
 
     # Aplicar filtro de enfoque
@@ -112,6 +125,11 @@ def procesar_imagen(ruta_imagen):
     )
 
     cv2.imwrite(
+        "resultados/imagen_gaussiana.jpg",
+        imagen_gaussiana
+    )
+
+    cv2.imwrite(
         "resultados/imagen_enfocada.jpg",
         imagen_enfocada
     )
@@ -131,6 +149,7 @@ def procesar_imagen(ruta_imagen):
         "mensaje": "Procesamiento completado",
         "gris": "resultados/imagen_gris.jpg",
         "suavizada": "resultados/imagen_suavizada.jpg",
+        "gaussiana": "resultados/imagen_gaussiana.jpg",
         "enfocada": "resultados/imagen_enfocada.jpg",
         "bordes": "resultados/imagen_bordes.jpg",
         "fourier": "resultados/espectro_fourier.jpg"
