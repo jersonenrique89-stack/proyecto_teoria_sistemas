@@ -2,6 +2,14 @@ import streamlit as st
 import requests
 from PIL import Image
 import io
+import base64
+
+
+def base64_a_imagen(b64_string):
+    """Convierte un string base64 a imagen PIL."""
+    bytes_img = base64.b64decode(b64_string)
+    return Image.open(io.BytesIO(bytes_img))
+
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(
@@ -46,58 +54,51 @@ if archivo is not None:
 
         # --- ESCALA DE GRISES ---
         st.subheader("⬛ Escala de grises")
-        img_gris = requests.get("http://127.0.0.1:8000/resultados/imagen_gris.jpg")
-        st.image(Image.open(io.BytesIO(img_gris.content)), use_container_width=True)
+        st.image(base64_a_imagen(datos["gris"]), use_container_width=True)
         st.info(datos.get("gris_descripcion", ""))
         st.divider()
 
-        # --- COMPARACIÓN: PASA BAJAS ---
+        # --- FILTROS PASA BAJAS ---
         st.subheader("🌫️ Filtros pasa bajas (suavizado)")
         col1, col2 = st.columns(2)
 
         with col1:
             st.markdown("**Suavizado promedio**")
-            img_suavizada = requests.get("http://127.0.0.1:8000/resultados/imagen_suavizada.jpg")
-            st.image(Image.open(io.BytesIO(img_suavizada.content)), use_container_width=True)
+            st.image(base64_a_imagen(datos["suavizada"]), use_container_width=True)
             st.info(datos.get("suavizada_descripcion", ""))
 
         with col2:
             st.markdown("**Filtro Gaussiano**")
-            img_gaussiana = requests.get("http://127.0.0.1:8000/resultados/imagen_gaussiana.jpg")
-            st.image(Image.open(io.BytesIO(img_gaussiana.content)), use_container_width=True)
+            st.image(base64_a_imagen(datos["gaussiana"]), use_container_width=True)
             st.info(datos.get("gaussiana_descripcion", ""))
 
         st.divider()
 
-        # --- FILTRO PASA ALTAS ---
-        st.subheader("🔆 Filtro pasa altas")
+        # --- FILTROS PASA ALTAS ---
+        st.subheader("🔆 Filtros pasa altas")
         col3, col4 = st.columns(2)
 
         with col3:
             st.markdown("**Pasa altas**")
-            img_pasa_altas = requests.get("http://127.0.0.1:8000/resultados/imagen_pasa_altas.jpg")
-            st.image(Image.open(io.BytesIO(img_pasa_altas.content)), use_container_width=True)
+            st.image(base64_a_imagen(datos["pasa_altas"]), use_container_width=True)
             st.info(datos.get("pasa_altas_descripcion", ""))
 
         with col4:
             st.markdown("**Realce / Enfoque**")
-            img_enfocada = requests.get("http://127.0.0.1:8000/resultados/imagen_enfocada.jpg")
-            st.image(Image.open(io.BytesIO(img_enfocada.content)), use_container_width=True)
+            st.image(base64_a_imagen(datos["enfocada"]), use_container_width=True)
             st.info(datos.get("enfocada_descripcion", ""))
 
         st.divider()
 
         # --- DETECCIÓN DE BORDES ---
         st.subheader("📐 Detección de bordes")
-        img_bordes = requests.get("http://127.0.0.1:8000/resultados/imagen_bordes.jpg")
-        st.image(Image.open(io.BytesIO(img_bordes.content)), use_container_width=True)
+        st.image(base64_a_imagen(datos["bordes"]), use_container_width=True)
         st.info(datos.get("bordes_descripcion", ""))
         st.divider()
 
         # --- ESPECTRO DE FOURIER ---
         st.subheader("📊 Espectro de Fourier")
-        img_fourier = requests.get("http://127.0.0.1:8000/resultados/espectro_fourier.jpg")
-        st.image(Image.open(io.BytesIO(img_fourier.content)), use_container_width=True)
+        st.image(base64_a_imagen(datos["fourier"]), use_container_width=True)
         st.info(datos.get("fourier_descripcion", ""))
         st.divider()
 
@@ -114,7 +115,7 @@ if archivo is not None:
 
         with col_result:
             st.markdown("**Salida (bordes detectados)**")
-            st.image(Image.open(io.BytesIO(img_bordes.content)), use_container_width=True)
+            st.image(base64_a_imagen(datos["bordes"]), use_container_width=True)
 
     else:
         # Mostrar error del backend
