@@ -2,6 +2,7 @@
 from fastapi import FastAPI
 from fastapi import UploadFile
 from fastapi import File
+from fastapi import Form
 from fastapi import HTTPException
 
 # Para servir archivos estáticos (las imágenes resultantes)
@@ -11,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from proyecto import procesar_imagen
 
 import os
+from typing import Optional
 
 # Extensiones de imagen permitidas para la carga
 FORMATOS_PERMITIDOS = {".jpg", ".jpeg", ".png"}
@@ -27,7 +29,6 @@ os.makedirs("uploads", exist_ok=True)    # Carpeta donde se guardan las imágene
 os.makedirs("resultados", exist_ok=True) # Carpeta donde se guardan las imágenes procesadas
 
 # Exponer la carpeta "resultados" como archivos accesibles por URL
-# Ejemplo: http://127.0.0.1:8000/resultados/imagen_gris.jpg
 app.mount(
     "/resultados",
     StaticFiles(directory="resultados"),
@@ -44,9 +45,11 @@ def inicio():
 
 
 # Endpoint principal — recibe una imagen, la valida y la procesa
+# El parámetro "filtros" es opcional: si no se envía, se aplican todos
 @app.post("/procesar")
 async def procesar(
-    archivo: UploadFile = File(...)  # El archivo viene del cuerpo del formulario
+    archivo: UploadFile = File(...),
+    filtros: Optional[str] = Form(None)
 ):
     # Obtener el nombre del archivo y su extensión
     nombre = archivo.filename or ""
@@ -59,18 +62,24 @@ async def procesar(
             detail=f"Formato no permitido: '{extension}'. Solo se aceptan JPG, JPEG o PNG."
         )
 
-    # Definir la ruta donde se guardará la imagen subida
+    # Definir la ruta donde se guardará la imagen subida temporalmente
     ruta = f"uploads/{nombre}"
 
     # Leer el contenido binario del archivo
     contenido = await archivo.read()
 
-    # Guardar la imagen en la carpeta uploads
+    # Guardar la imagen temporalmente en la carpeta uploads
     with open(ruta, "wb") as f:
         f.write(contenido)
 
-    # Enviar la imagen al módulo de procesamiento y obtener los resultados
-    resultado = procesar_imagen(ruta)
+    # Convertir el string de filtros a una lista
+    # Si no se envían filtros, se aplican todos por defecto
+    lista_filtros = None
+    if filtros:
+        lista_filtros = [f.strip() for f in filtros.split(",")]
 
-    # Devolver las rutas de las imágenes generadas
+    # Enviar la imagen al módulo de procesamiento con los filtros seleccionados
+    resultado = procesar_imagen(ruta, lista_filtros)
+
+    # Devolver las imágenes procesadas
     return resultado
